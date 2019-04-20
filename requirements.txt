@@ -1,0 +1,4 @@
+aiohttp
+lxml
+motor
+uvloop
