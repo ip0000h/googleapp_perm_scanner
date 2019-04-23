@@ -40,10 +40,9 @@ async def new_application(request):
         'id': parsed_qs.get('id')[0],
         'hl': parsed_qs.get('hl')[0]
     }
-    permissions_in_exist = await db.permissions.find_one(
+    permissions_in_exist = await db.permissions_in.find_one(
         permissions_in_data
     )
-    print(permissions_in_exist)
     if not permissions_in_exist:
         await db.permissions_in.insert_one(permissions_in_data)
     return web.json_response({}, status=202)

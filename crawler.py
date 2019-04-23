@@ -112,7 +112,6 @@ async def parse_app_permissions_data(raw_data, language):
             }
         else:
             res[block_name]['permissions'].extend(permissions)
-    print(res)
     if other_permissions[1]:
         for perm in other_permissions[1]:
             if language == 'en':

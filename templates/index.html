@@ -59,15 +59,15 @@
                         $("#result").show();
                         Object.keys(data).forEach(key => {
                             var group_div = $("#result").append(
-                                '<div style="margin: 15px; font:solid"></div>'
+                                '<div style="margin: 15px"></div>'
                             );
                             var image = group_div.append(
                                 '<img src="/static/' + data[key]['icon'] + '">'
                             );
                             var perm_div = group_div.append(
-                                '<div style="font:solid">' + key + '</div>'
+                                '<span>' + key + '</span>'
                             );
-                            var perm_group = perm_div.append('<ul></ul>');
+                            var perm_group = group_div.append('<ul></ul>');
                             data[key]['permissions'].forEach(perm_element => {
                                 perm_group.append(
                                     '<li>' + perm_element + '</li>'
