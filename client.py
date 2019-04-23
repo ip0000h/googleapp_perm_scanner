@@ -9,6 +9,9 @@ from lxml import etree
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+client = AsyncIOMotorClient('localhost')
+db = client.google_permissions_parser
+
 
 async def index(request):
     return web.FileResponse('./templates/index.html')
@@ -22,27 +25,7 @@ async def new_application(request):
     data_json = await request.post()
     url = data_json.get('url')
     print(url)
-    data = await parse_app_page(url)
-    data = [
-        {
-            'name': 'Identity',
-            'icon': 'file_icon_name',
-            'permissions': [
-                'find accounts on the device',
-                'add or remove accounts',
-                'read your own contact card'
-            ]
-        },
-        {
-            'name': 'Contacts',
-            'icon': 'file_icon_name',
-            'permissions': [
-                'find accounts on the device',
-                'read your contacts',
-                'modify your contacts'
-            ]
-        },
-    ]
+    data = {}
     return web.json_response(data)
 
 
