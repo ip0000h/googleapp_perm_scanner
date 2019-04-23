@@ -35,31 +35,55 @@
 
 </html>
 <script>
+    var errorShow = function() {
+        $("#result").hide();
+        $('#app-url').toggleClass('is-invalid');
+    };
+    $.ajaxSetup({
+        timeout: 3000,
+        retryAfter:1000
+    });
     $("#result").hide();
-    $('#button').click(function () {
+    $('#button').click(function() {
         var data = {
             'url': $('#app-url').val()
         };
-        console.log(data);
-        var posting = $.post('/api/application/new', data);
-        posting.done(function (data) {
-            $("#result").empty();
-            $("#result").show();
-            data.forEach(element => {
-                var perm_div = $("#result").append(
-                    '<div style="margin: 15px">' + element['name'] + '</div>'
-                );
-                var perm_group = perm_div.append('<ul></ul>');
-                element['permissions'].forEach(perm_element => {
-                    perm_group.append(
-                        '<li>' + perm_element + '</li>'
-                    );
-                });
+        function sendData() {
+            $.ajax({
+                type: 'POST',
+                url: '/api/application/new',
+                data: data,
+                statusCode: {
+                    200: function(data) {
+                        $("#result").empty();
+                        $("#result").show();
+                        Object.keys(data).forEach(key => {
+                            var group_div = $("#result").append(
+                                '<div style="margin: 15px; font:solid"></div>'
+                            );
+                            var image = group_div.append(
+                                '<img src="/static/' + data[key]['icon'] + '">'
+                            );
+                            var perm_div = group_div.append(
+                                '<div style="font:solid">' + key + '</div>'
+                            );
+                            var perm_group = perm_div.append('<ul></ul>');
+                            data[key]['permissions'].forEach(perm_element => {
+                                perm_group.append(
+                                    '<li>' + perm_element + '</li>'
+                                );
+                            });
+                        })
+                    },
+                    202: function() {
+                        console.log('202');
+                        setTimeout(sendData, $.ajaxSetup().retryAfter);
+                    },
+                    404: errorShow,
+                    500: errorShow
+                }
             });
-        });
-        posting.fail(function (data) {
-            $("#result").hide();
-            $('#app-url').toggleClass('is-invalid');
-        });
+        };
+        sendData();
     });
 </script>

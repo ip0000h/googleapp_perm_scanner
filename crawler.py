@@ -4,11 +4,11 @@ import json
 import logging
 import os
 import re
+from contextlib import suppress
 from datetime import datetime
 
 from aiohttp import ClientSession
 from motor.motor_asyncio import AsyncIOMotorClient
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -65,6 +65,8 @@ async def save_permission_icon(url):
     Сохраняем данные об иконке в статику, возвращаем имя файла
     """
     filename = '{0}.png'.format(url.rsplit('/', maxsplit=1)[1])
+    if not os.path.exists('static'):
+        os.makedirs('static')
     path = os.path.join('static', filename)
     async with ClientSession() as session:
         async with session.get(url) as response:
@@ -78,7 +80,7 @@ async def save_permission(data):
     """
     Сохраняем полученные данные в БД
     """
-    return await db.permissions.insert(data)
+    return await db.permissions.insert_one(data)
 
 
 async def parse_app_permissions_data(raw_data, language):
@@ -97,7 +99,7 @@ async def parse_app_permissions_data(raw_data, language):
     main_permissions = data[0]
     other_permissions = data[1:]
     for perm_block in main_permissions + other_permissions[0]:
-        if not perm_block or not isinstance(perm_block, list) or not len(perm_block) < 4:
+        if not perm_block or not isinstance(perm_block, list):
             continue
         block_name = perm_block[0]
         icon_url = perm_block[1][3][2]
@@ -110,6 +112,7 @@ async def parse_app_permissions_data(raw_data, language):
             }
         else:
             res[block_name]['permissions'].extend(permissions)
+    print(res)
     if other_permissions[1]:
         for perm in other_permissions[1]:
             if language == 'en':
@@ -119,14 +122,57 @@ async def parse_app_permissions_data(raw_data, language):
     return res
 
 
+async def set_error(doc_id):
+    await db.permissions_in.update_one({'_id': doc_id}, {"$set": {'error': True}})
+
+
+async def set_success(doc_id):
+    await db.permissions_in.update_one({'_id': doc_id}, {"$set":{'error': False}})
+
+
 async def start_client(loop):
-    pass
+    while True:
+        async for application in db.permissions_in.find({'error': {'$exists': False}}):
+            doc_id = application.get('_id')
+            app_id = application.get('id')
+            language = application.get('hl')
+            data = await get_app_permissions_data(app_id, language)
+            if not data:
+                await set_error(doc_id)
+            data = await parse_app_permissions_data(data, language)
+            if not data:
+                await set_error(doc_id)
+            data['id'] = "{}_{}".format(app_id, language)
+            await save_permission(data)
+            await set_success(doc_id)
+        await asyncio.sleep(1)
+
+# async def watch(collection):
+#     async with collection.watch([]) as stream:
+#         async for change in stream:
+#             print(change)
+
+
+# async def cleanup(task):
+#     task.cancel()
+#     with suppress(asyncio.CancelledError):
+#         await task
 
 
 if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
 
-    loop.run_until_complete(start_client(loop))
+    # task = asyncio.ensure_future(watch(db.permissions_in))
 
-    loop.close()
+    try:
+        loop.run_until_complete(start_client(loop))
+        # loop.run_forever()
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt')
+    finally:
+        # loop.run_until_complete(cleanup(task))
+        # loop.run_until_complete(asyncio.sleep(client.server_selection_timeout))
+
+        # loop.shutdown_asyncgens()
+        loop.close()
