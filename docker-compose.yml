@@ -1,0 +1,25 @@
+mongo:
+  restart: always
+  image: mongo:latest
+  ports:
+    - "6379:6379"
+
+crawler:
+  build: ./
+  working_dir: /var/www/app
+  command: bash -c "python crawler.py"
+  volumes:
+    - ./:/var/www/app:rw
+  links:
+    - mongo
+
+client:
+  build: ./
+  working_dir: /var/www/app
+  command: bash -c "python client.py"
+  volumes:
+    - ./:/var/www/app:ro
+  links:
+    - mongo
+  ports:
+    - "8080:8080"

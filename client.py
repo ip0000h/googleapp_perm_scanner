@@ -13,7 +13,7 @@ logger.setLevel(logging.DEBUG)
 GOOGLE_DOMAIN = 'play.google.com'
 ALLOWED_LANGS = ['en', 'ru']
 
-client = AsyncIOMotorClient('localhost')
+client = AsyncIOMotorClient('mongo')
 db = client.google_permissions_parser
 
 

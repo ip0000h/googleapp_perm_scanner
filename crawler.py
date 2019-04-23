@@ -28,7 +28,7 @@ DEFAULT_PARAMS = {
 OTHER_EXTENSIONS_EN_NAME = 'Other'
 OTHER_EXTENSIONS_RU_NAME = 'Другое'
 
-client = AsyncIOMotorClient('localhost')
+client = AsyncIOMotorClient('mongo')
 db = client.google_permissions_parser
 
 
