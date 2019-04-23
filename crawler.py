@@ -1,34 +1,53 @@
 #!/usr/bin/env python3
 import asyncio
+import json
 import logging
-import aiohttp
+import re
+from datetime import datetime
+
+from aiohttp import ClientSession, CookieJar
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
-parser = etree.HTMLParser()
-
-
-def is_valid_app_url(url):
-    return "https://play.google.com/store/xhr/getdoc?authuser=0"
+PERMISSIONS_URL = 'https://play.google.com/_/PlayStoreUi/data/batchexecute'
 
 
-def make_app_permissions_url():
-    pass
-
-
-def parse_app_permissions(response):
-    return etree.parse(io.StringIO(string), parser)
-
-
-async def parse_app_permissions(url):
+async def get_app_permissions_data(app_id, language):
+    """
+    Возвращает данные по разрешениям
+    """
+    params = {
+        'rpcids': 'xdSrCf',
+        'f.sid': '5600643832700570820',
+        'bl': 'boq_playuiserver_20190421.14_p0',
+        'hl': language,
+        'authuser': '',
+        'soc-app': '121',
+        'soc-platform': '1',
+        'soc-device': '1',
+        '_reqid': '329479',
+        'rt': 'c',
+    }
     async with ClientSession() as session:
-        resp_main_page =  session.get(url)
-        if resp_main_page.status_code != 200:
+        data = {
+            'f.req': r'[[["xdSrCf","[[null,[\"{}\",7],[]]]",null,"IZBjA:0|mC"]]]'.format(app_id),
+            '': '',
+        }
+        resp_app_permissions = await session.post(
+            PERMISSIONS_URL,
+            params=params,
+            data=data
+        )
+        print('Response status: %s' % resp_app_permissions.status)
+        print('Response headers: %s' % resp_app_permissions.headers)
+        print('Response cookies: %s' % resp_app_permissions.cookies)
+        if resp_app_permissions.status != 200:
             return None
-        resp_app_permissions = session.get()
+        resp_app_permissions_text = await resp_app_permissions.text()
+        print('Response text: %s' % resp_app_permissions_text)
+        return resp_app_permissions_text
 
 
 async def start_client(loop):

@@ -5,16 +5,9 @@ import logging
 from aiohttp import web, ClientSession
 from lxml import etree
 
-"https://play.google.com/store/xhr/getdoc?authuser=0"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-# client = motor.motor_asyncio.AsyncIOMotorClient(
-#     'mongodb://176.58.98.163:27017'
-# )
-# matches = client.bwin['matches']
 
 
 async def index(request):
