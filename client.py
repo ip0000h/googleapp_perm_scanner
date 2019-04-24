@@ -24,11 +24,25 @@ async def index(request):
 async def new_application(request):
     data_json = await request.post()
     url = data_json.get('url')
-    parsed_url_data = urlparse(url)
-    parsed_qs = parse_qs(parsed_url_data.query)
-    if parsed_url_data.netloc != GOOGLE_DOMAIN or parsed_qs.get('hl')[0] not in ALLOWED_LANGS:
-        return web.HTTPNotFound()
-    search_id = "{}_{}".format(parsed_qs.get('id')[0], parsed_qs.get('hl')[0])
+
+    if not url.startswith('https://'):
+        app_id = url
+        language = ALLOWED_LANGS[0]
+    else:
+        parsed_url_data = urlparse(url)
+        parsed_qs = parse_qs(parsed_url_data.query)
+        if parsed_url_data.netloc != GOOGLE_DOMAIN:
+            return web.HTTPNotFound()
+        if parsed_qs.get('hl') and parsed_qs.get('hl')[0] not in ALLOWED_LANGS:
+            return web.HTTPNotFound()
+        app_id = parsed_qs.get('id')[0]
+        if not parsed_qs.get('hl'):
+            language = ALLOWED_LANGS[0]
+        else:
+            language = parsed_qs.get('hl')[0]
+
+    search_id = "{}_{}".format(app_id, language)
+
     exist_data = await db.permissions.find_one(
         {'id': search_id}
     )
@@ -36,6 +50,7 @@ async def new_application(request):
         exist_data.pop('_id')
         exist_data.pop('id')
         return web.json_response(exist_data, status=200)
+
     permissions_in_data = {
         'id': parsed_qs.get('id')[0],
         'hl': parsed_qs.get('hl')[0]
