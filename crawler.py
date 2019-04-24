@@ -138,9 +138,11 @@ async def start_client(loop):
             data = await get_app_permissions_data(app_id, language)
             if not data:
                 await set_error(doc_id)
+                continue
             data = await parse_app_permissions_data(data, language)
             if not data:
                 await set_error(doc_id)
+                continue
             data['id'] = "{}_{}".format(app_id, language)
             await save_permission(data)
             await set_success(doc_id)

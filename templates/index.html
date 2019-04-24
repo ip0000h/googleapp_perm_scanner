@@ -36,7 +36,6 @@
 </html>
 <script>
     var errorShow = function() {
-        $("#result").hide();
         $('#app-url').toggleClass('is-invalid');
     };
     $.ajaxSetup({
@@ -45,6 +44,8 @@
     });
     $("#result").hide();
     $('#button').click(function() {
+        $("#result").hide();
+        $("#result").empty();
         var data = {
             'url': $('#app-url').val()
         };
@@ -55,7 +56,7 @@
                 data: data,
                 statusCode: {
                     200: function(data) {
-                        $("#result").empty();
+                        $('#app-url').removeClass('is-invalid');
                         $("#result").show();
                         Object.keys(data).forEach(key => {
                             var group_div = $("#result").append(
@@ -76,7 +77,6 @@
                         })
                     },
                     202: function() {
-                        console.log('202');
                         setTimeout(sendData, $.ajaxSetup().retryAfter);
                     },
                     404: errorShow,

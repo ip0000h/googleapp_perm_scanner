@@ -45,6 +45,8 @@ async def new_application(request):
     )
     if not permissions_in_exist:
         await db.permissions_in.insert_one(permissions_in_data)
+    elif 'error' in permissions_in_exist:
+        return web.HTTPNotFound()
     return web.json_response({}, status=202)
 
 
