@@ -52,8 +52,8 @@ async def new_application(request):
         return web.json_response(exist_data, status=200)
 
     permissions_in_data = {
-        'id': parsed_qs.get('id')[0],
-        'hl': parsed_qs.get('hl')[0]
+        'id': app_id,
+        'hl': language
     }
     permissions_in_exist = await db.permissions_in.find_one(
         permissions_in_data
