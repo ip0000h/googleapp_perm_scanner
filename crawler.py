@@ -99,6 +99,8 @@ async def parse_app_permissions_data(raw_data, language):
         print('Wrong data format: %s' % data)
         return None
     main_permissions = data[0]
+    if not main_permissions:
+        main_permissions = []
     other_permissions = data[1:]
     for perm_block in main_permissions + other_permissions[0]:
         if not perm_block or not isinstance(perm_block, list):
