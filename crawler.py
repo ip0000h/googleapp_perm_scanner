@@ -91,10 +91,12 @@ async def parse_app_permissions_data(raw_data, language):
     res = {}
     data = re.findall(r'\"(\[.*\\n)\"', raw_data)
     if not data or not isinstance(data, list) or not len(data) == 1:
+        print('Wrong data format: %s' % data)
         return None
     data = data[0].replace('\\n', '').replace('\\', '')
     data = json.loads(data)
-    if not data or not isinstance(data, list) or not len(data) == 3:
+    if not data or not isinstance(data, list):
+        print('Wrong data format: %s' % data)
         return None
     main_permissions = data[0]
     other_permissions = data[1:]
@@ -112,7 +114,7 @@ async def parse_app_permissions_data(raw_data, language):
             }
         else:
             res[block_name]['permissions'].extend(permissions)
-    if other_permissions[1]:
+    if len(data) == 3 and other_permissions[1]:
         for perm in other_permissions[1]:
             if language == 'en':
                 res[OTHER_EXTENSIONS_EN_NAME]['permissions'].append(perm[1])
@@ -137,14 +139,16 @@ async def start_client(loop):
             language = application.get('hl')
             data = await get_app_permissions_data(app_id, language)
             if not data:
+                print("No application data app_id: %s language: %s" % (app_id, language))
                 await set_error(doc_id)
                 continue
-            data = await parse_app_permissions_data(data, language)
-            if not data:
+            parsed_data = await parse_app_permissions_data(data, language)
+            if not parsed_data:
+                print("Cannot parse data app_id: %s language: %s data: %s" % (app_id, language, data))
                 await set_error(doc_id)
                 continue
-            data['id'] = "{}_{}".format(app_id, language)
-            await save_permission(data)
+            parsed_data['id'] = "{}_{}".format(app_id, language)
+            await save_permission(parsed_data)
             await set_success(doc_id)
         await asyncio.sleep(1)
 

@@ -32,8 +32,10 @@ async def new_application(request):
         parsed_url_data = urlparse(url)
         parsed_qs = parse_qs(parsed_url_data.query)
         if parsed_url_data.netloc != GOOGLE_DOMAIN:
+            print('Wrong domain in url %s' % url)
             return web.HTTPNotFound()
         if parsed_qs.get('hl') and parsed_qs.get('hl')[0] not in ALLOWED_LANGS:
+            print('Wrong language in url %s' % url)
             return web.HTTPNotFound()
         app_id = parsed_qs.get('id')[0]
         if not parsed_qs.get('hl'):
@@ -41,6 +43,7 @@ async def new_application(request):
         else:
             language = parsed_qs.get('hl')[0]
 
+    print("Searching app_id: %s language: %s" % (app_id, language))
     search_id = "{}_{}".format(app_id, language)
 
     exist_data = await db.permissions.find_one(
@@ -61,6 +64,7 @@ async def new_application(request):
     if not permissions_in_exist:
         await db.permissions_in.insert_one(permissions_in_data)
     elif 'error' in permissions_in_exist:
+        print('Wrong request for %s' % url)
         return web.HTTPNotFound()
     return web.json_response({}, status=202)
 
