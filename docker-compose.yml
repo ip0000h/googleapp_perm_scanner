@@ -18,7 +18,7 @@ client:
   working_dir: /var/www/app
   command: bash -c "python client.py"
   volumes:
-    - ./:/var/www/app:ro
+    - ./:/var/www/app:rw
   links:
     - mongo
   ports:
