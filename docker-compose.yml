@@ -2,10 +2,11 @@ mongo:
   restart: always
   image: mongo:latest
   ports:
-    - "6379:6379"
+    - "6379"
 
 crawler:
   build: ./
+  restart: always
   working_dir: /var/www/app
   command: bash -c "python crawler.py"
   volumes:
@@ -15,6 +16,7 @@ crawler:
 
 client:
   build: ./
+  restart: always
   working_dir: /var/www/app
   command: bash -c "python client.py"
   volumes:
